@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACHECKMATE // ARCHITECT</title>
+
+    <!-- High-Performance Motion Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Space+Mono&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --red: #BC0000;
+            --black: #080808;
+            --white: #F5F5F7;
+            --glass: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+
+        body {
+            background-color: var(--black);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Grain & Cursor (Extreme Speed) --- */
+        #grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999; pointer-events: none; opacity: 0.05;
+        }
+
+        #cursor {
+            position: fixed; width: 8px; height: 8px; background: var(--red);
+            border-radius: 50%; z-index: 10000; pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        #cursor-follower {
+            position: fixed; width: 30px; height: 30px; border: 1px solid var(--red);
+            border-radius: 50%; z-index: 9999; pointer-events: none;
+        }
+
+        /* --- Apple Interactive Notification (Toast) --- */
+        #toast {
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150px);
+            background: rgba(255, 255, 255, 0.95); color: #000;
+            padding: 14px 28px; border-radius: 40px; font-weight: 700;
+            z-index: 10001; backdrop-filter: blur(20px);
+            font-size: 14px; display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- Layout System --- */
+        .track { display: flex; width: 500vw; height: 100vh; }
+
+        section {
+            width: 100vw; height: 100vh; flex-shrink: 0;
+            display: flex; flex-direction: column; justify-content: center;
+            padding: 0 10vw; position: relative; overflow: hidden;
+        }
+
+        .huge { font-size: clamp(4rem, 15vw, 16rem); font-weight: 900; line-height: 0.8; text-transform: uppercase; letter-spacing: -0.05em; }
+        .outline { color: transparent; -webkit-text-stroke: 1.5px var(--white); }
+        .label { font-family: 'Space Mono'; color: var(--red); font-size: 11px; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; }
+
+        /* --- Artistic Elements --- */
+        .chess-icon { position: absolute; font-size: 40vh; opacity: 0.1; z-index: -1; user-select: none; }
+
+        /* --- Interactive Links (Bubble Style) --- */
+        .bubble-link {
+            position: relative; display: inline-block; color: var(--white);
+            text-decoration: none; font-size: 3vw; font-weight: 900;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 15px 0;
+        }
+        .bubble-link:hover { transform: scale(1.1) translateX(20px); color: var(--red); }
+
+        /* --- Discord Action Block --- */
+        .discord-card {
+            background: var(--glass); padding: 50px; border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.05); max-width: 600px;
+            margin-top: 40px; backdrop-filter: blur(30px);
+            transition: 0.5s var(--e-out);
+        }
+        .discord-card:hover { border-color: var(--red); background: rgba(255,255,255,0.12); }
+
+        .btn {
+            background: var(--white); color: var(--black); padding: 16px 32px;
+            border-radius: 100px; font-weight: 800; display: inline-block;
+            margin-top: 30px; transition: 0.4s; border: none; font-family: 'Syncopate';
+            font-size: 12px; cursor: pointer;
+        }
+        .btn:hover { background: var(--red); color: var(--white); transform: scale(1.05); }
+
+        /* --- Progress Bar --- */
+        .bar-wrap { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); width: 250px; height: 2px; background: rgba(255,255,255,0.1); z-index: 1000; }
+        .bar-fill { width: 0%; height: 100%; background: var(--red); border-radius: 2px; }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="grain"></canvas>
+    <div id="cursor"></div>
+    <div id="cursor-follower"></div>
+    
+    <!-- iOS / Apple Style Notification -->
+    <div id="toast" id="toast-el"><span style="background:var(--red); color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px;">✓</span> <span id="toast-text">ID kopiert!</span></div>
+
+    <div class="bar-wrap"><div class="bar-fill" id="progress-bar"></div></div>
+
+    <nav style="position:fixed; top:50px; width:100%; padding: 0 80px; display:flex; justify-content:space-between; z-index:1000; font-family:'Space Mono'; font-size:10px; text-transform:uppercase; letter-spacing:2px;">
+        <div style="font-weight:700;">ACHECKMATE // ARCHITECT</div>
+        <div id="clock">00:00:00</div>
+    </nav>
+
+    <div class="track" id="track">
+        
+        <!-- SECTION 1: HERO -->
+        <section>
+            <div class="chess-icon" style="right: 5%;">♚</div>
+            <span class="label">// Artistic Affinity</span>
+            <h1 class="huge">ACHECK</h1>
+            <h1 class="huge outline">MATE.</h1>
+            <p style="margin-top:40px; opacity:0.4; max-width:500px; line-height:1.6;">UGC Creator, Building Architect & Web Developer. Ich verbinde technischen Code mit künstlerischer Leidenschaft.</p>
+        </section>
+
+        <!-- SECTION 2: ROBLOX & UGC -->
+        <section style="background: var(--red); color: var(--black);">
+            <div class="chess-icon" style="left: -5%; color: #000; opacity: 0.05;">♛</div>
+            <span class="label" style="color:#000;">// Metaverse Lab</span>
+            <h1 class="huge" style="font-size: 10vw; color: #000;">ROBLOX</h1>
+            <a href="https://www.roblox.com/de/users/7939067474/profile" target="_blank" class="bubble-link" style="color:#000;">PROFIL BESUCHEN</a>
+            <p style="margin-top:20px; font-weight:800; text-transform:uppercase; font-size:14px;">UGC Creation • Outfit Design • Advanced Building</p>
+        </section>
+
+        <!-- SECTION 3: WEB DEVELOPMENT -->
+        <section>
+            <span class="label">// Digital Construction</span>
+            <h1 class="huge">WEB</h1>
+            <h1 class="huge outline">DEVELOP.</h1>
+            <p style="margin-top:30px; opacity:0.4; max-width:500px;">Von interaktiven Webseiten bis hin zu komplexen Skripten. Ich baue die Architektur des Webs.</p>
+        </section>
+
+        <!-- SECTION 4: INSTAGRAM -->
+        <section style="background: var(--white); color: var(--black);">
+            <span class="label" style="color:var(--red);">// Social Gallery</span>
+            <h1 class="huge" style="font-size: 10vw; color: var(--black);">INSTA</h1>
+            <a href="https://www.instagram.com/gio0vannii/" target="_blank" class="bubble-link" style="color:var(--red);">@GIO0VANNII</a>
+        </section>
+
+        <!-- SECTION 5: CONTACT & DISCORD -->
+        <section>
+            <div class="chess-icon" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">♝</div>
+            <span class="label">// Final Move</span>
+            <h1 class="huge" style="font-size: 8vw;">CONTACT</h1>
+            
+            <div class="discord-card">
+                <span class="label" style="margin-bottom:10px; display:block;">Discord Identity</span>
+                <h2 style="font-size: 3rem; letter-spacing: -2px; margin-bottom: 10px;">gio0vani</h2>
+                <button class="btn" id="copy-discord">ID KOPIEREN</button>
+            </div>
+
+            <div style="margin-top: 60px; display: flex; flex-direction: column; gap: 20px;">
+                <a href="mailto:acheckmate100@gmail.com" class="bubble-link" style="font-size: 2vw;" id="mail-link">acheckmate100@gmail.com</a>
+                <span class="label" style="opacity:0.5;">// Click to send mail</span>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // --- 1. SMOOTH SCROLL (LENIS ENGINE) ---
+        const lenis = new Lenis();
+        function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+        requestAnimationFrame(raf);
+
+        // --- 2. GSAP SCROLL SYSTEM ---
+        gsap.registerPlugin(ScrollTrigger);
+        const track = document.getElementById('track');
+
+        gsap.to(track, {
+            x: () => -(track.scrollWidth - window.innerWidth),
+            ease: "none",
+            scrollTrigger: {
+                trigger: track,
+                pin: true,
+                scrub: 1,
+                end: () => "+=" + track.scrollWidth,
+                onUpdate: (self) => {
+                    document.getElementById('progress-bar').style.width = (self.progress * 100) + "%";
+                }
+            }
+        });
+
+        // --- 3. ULTRA-FAST CURSOR (APPLE INTERACTIVITY) ---
+        const cursor = document.getElementById('cursor');
+        const follower = document.getElementById('cursor-follower');
+
+        window.addEventListener('mousemove', (e) => {
+            // Real-time Dot
+            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0 });
+            // Fluid Ring
+            gsap.to(follower, { x: e.clientX - 15, y: e.clientY - 15, duration: 0.15, ease: "power2.out" });
+        });
+
+        // --- 4. APPLE PILL NOTIFICATION LOGIC ---
+        const copyBtn = document.getElementById('copy-discord');
+        const toast = document.getElementById('toast');
+        const toastText = document.getElementById('toast-text');
+
+        function showAppleToast(text) {
+            toastText.innerText = text;
+            gsap.to(toast, { y: 180, duration: 0.7, ease: "back.out(1.7)" });
+            setTimeout(() => {
+                gsap.to(toast, { y: -150, duration: 0.5, ease: "power2.in" });
+            }, 3000);
+        }
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText('gio0vani');
+            showAppleToast("ID kopiert!");
+        });
+
+        document.getElementById('mail-link').addEventListener('click', () => {
+            showAppleToast("Mail-App wird geöffnet...");
+        });
+
+        // --- 5. GRAIN ENGINE ---
+        const canvas = document.getElementById('grain');
+        const ctx = canvas.getContext('2d');
+        function initGrain() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const idata = ctx.createImageData(canvas.width, canvas.height);
+            const buffer32 = new Uint32Array(idata.data.buffer);
+            function loop() {
+                for (let i = 0; i < buffer32.length; i++) {
+                    if (Math.random() < 0.1) buffer32[i] = (Math.random() * 255) << 24;
+                }
+                ctx.putImageData(idata, 0, 0);
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
+        initGrain();
+
+        // --- 6. CLOCK & INTERACTION HOVER ---
+        function updateClock() {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('de-DE');
+        }
+        setInterval(updateClock, 1000);
+
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                gsap.to(follower, { scale: 2, background: 'rgba(188, 0, 0, 0.15)', borderColor: 'transparent', duration: 0.3 });
+            });
+            el.addEventListener('mouseleave', () => {
+                gsap.to(follower, { scale: 1, background: 'transparent', borderColor: '#BC0000', duration: 0.3 });
+            });
+        });
+
+        console.log("ACHECKMATE INFINITE ART // FINAL DEPLOY READY.");
+    </script>
+</body>
+</html>
