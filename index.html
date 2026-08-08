@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Space+Mono:wght@400;700&family=Syncopate:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -20,118 +20,180 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow-x:hidden;background:var(--black);color:var(--white);font-family:'Inter',sans-serif;}
+html,body{overflow-x:hidden;background:var(--black);color:var(--white);font-family:'Inter',sans-serif}
 
 @media (hover:hover) and (pointer:fine){
   html{cursor:none}
 }
 
-/* Grain v3 - sehr leicht */
-#grain{
-  position:fixed;inset:0;
-  z-index:9998;pointer-events:none;opacity:0.035;
-  background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27 viewBox=%270 0 200 200%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%271.2%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%270.4%27/%3E%3C/svg%27');
-  mix-blend-mode:overlay;
-  image-rendering:pixelated;
-}
+/* ===== CURSOR ===== */
+#cursor-dot,#cursor-ring{position:fixed;top:0;left:0;z-index:10000;pointer-events:none}
+#cursor-dot{width:8px;height:8px;background:var(--red-bright);border-radius:50%;mix-blend-mode:difference}
+#cursor-ring{width:36px;height:36px;border:1.5px solid var(--red);border-radius:50%}
+@media (hover:none){#cursor-dot,#cursor-ring{display:none}}
 
-/* Cursor */
-#cursor-dot,#cursor-ring{
-  position:fixed;top:0;left:0;z-index:10000;pointer-events:none;
-}
-#cursor-dot{
-  width:8px;height:8px;background:var(--red-bright);
-  border-radius:50%;mix-blend-mode:difference;
-}
-#cursor-ring{
-  width:36px;height:36px;border:1.5px solid var(--red);
-  border-radius:50%;transition:transform .35s cubic-bezier(0.23,1,0.32,1);
-}
-
-/* Toast */
+/* ===== TOAST ===== */
 #toast{
   position:fixed;top:30px;left:50%;transform:translate(-50%,-150px);
-  background:rgba(255,255,255,0.97);color:#111;
-  padding:15px 28px;border-radius:999px;
-  font-weight:700;font-size:15px;display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.97);color:#111;
+  padding:15px 28px;border-radius:999px;font-weight:700;font-size:15px;
+  display:flex;align-items:center;gap:12px;
   box-shadow:0 20px 60px -10px rgba(0,0,0,.6);
   z-index:10001;white-space:nowrap;
-  transition:all .6s cubic-bezier(0.34,1.56,0.64,1);
+  transition:transform .6s cubic-bezier(.34,1.56,.64,1);
 }
 #toast.show{transform:translate(-50%,0)}
 
-/* Nav, Progress, Hint */
+/* ===== NAV ===== */
 nav{
-  position:fixed;top:0;left:0;right:0;padding:32px 5vw;
+  position:fixed;top:0;left:0;right:0;padding:28px 5vw;
   display:flex;justify-content:space-between;align-items:center;
-  z-index:900;font-family:'Space Mono',monospace;font-size:10.5px;
-  letter-spacing:2.5px;text-transform:uppercase;mix-blend-mode:difference;
+  z-index:900;font-family:'Space Mono',monospace;font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;mix-blend-mode:difference;
   pointer-events:none;
 }
 nav *{pointer-events:all}
 
+/* ===== PROGRESS ===== */
 .prog-wrap{
-  position:fixed;bottom:38px;left:50%;transform:translateX(-50%);
-  width:260px;height:2px;background:rgba(255,255,255,.15);
+  position:fixed;bottom:36px;left:50%;transform:translateX(-50%);
+  width:240px;height:2px;background:rgba(255,255,255,.15);
   z-index:900;border-radius:999px;overflow:hidden;
 }
 .prog-fill{height:100%;width:0%;background:var(--red-bright)}
-
 .scroll-hint{
-  position:fixed;bottom:58px;left:50%;transform:translateX(-50%);
+  position:fixed;bottom:56px;left:50%;transform:translateX(-50%);
   font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;
-  opacity:0.35;z-index:900;mix-blend-mode:difference;
+  opacity:.35;z-index:900;mix-blend-mode:difference;
 }
 
-/* Layout */
+/* ===== LAYOUT ===== */
 .hwrap{height:100vh;overflow:hidden}
 .track{display:flex;height:100vh;width:max-content}
 
 .panel{
   width:100vw;height:100vh;flex-shrink:0;
   display:flex;flex-direction:column;justify-content:center;
-  padding:0 9vw;position:relative;
+  padding:0 8vw;position:relative;overflow:hidden;
+}
+.panel > *{position:relative;z-index:2;max-width:88vw}
+
+/* Panel Nummern, sauber positioniert */
+.num{
+  position:absolute;top:16vh;right:7vw;
+  font-family:'Space Mono',monospace;
+  font-size:clamp(12px,1.4vw,16px);
+  letter-spacing:3px;opacity:.4;z-index:1;
 }
 
-.label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--red-bright);margin-bottom:20px;text-transform:uppercase}
-.huge{font-size:clamp(3.8rem,14vw,16rem);font-weight:900;line-height:0.78;letter-spacing:-0.06em;text-transform:uppercase}
+/* ===== TYPO, nichts ragt mehr raus ===== */
+.label{
+  font-family:'Space Mono',monospace;font-size:11px;
+  letter-spacing:4px;color:var(--red-bright);
+  margin-bottom:18px;text-transform:uppercase;
+}
+.huge{
+  font-size:clamp(2.6rem,9.5vw,10.5rem);
+  font-weight:900;line-height:.85;letter-spacing:-.04em;
+  text-transform:uppercase;
+  overflow-wrap:break-word;word-break:keep-all;
+  max-width:100%;
+}
 .outline{color:transparent;-webkit-text-stroke:2px var(--white)}
-.body-txt{max-width:520px;font-size:16.5px;line-height:1.7;opacity:0.68;margin-top:32px}
+.body-txt{
+  max-width:min(520px,84vw);font-size:16px;line-height:1.7;
+  opacity:.68;margin-top:28px;overflow-wrap:break-word;hyphens:auto;
+}
 
-.chess{position:absolute;font-size:clamp(260px,42vw,520px);opacity:0.055;pointer-events:none;z-index:0;line-height:1}
+.chess{
+  position:absolute;font-size:clamp(200px,36vw,440px);
+  opacity:.05;pointer-events:none;z-index:0;line-height:1;user-select:none;
+}
 
-.blink{color:var(--white);font-size:clamp(1.8rem,4.2vw,3.4rem);font-weight:900;letter-spacing:-0.02em;margin-top:24px;text-decoration:none;display:inline-block;transition:all .5s cubic-bezier(0.23,1,0.32,1)}
-.blink:hover{color:var(--red-bright);transform:translateX(32px)}
-.blink::after{content:" ↗";font-size:0.58em;opacity:0.6}
+.blink{
+  color:var(--white);font-size:clamp(1.4rem,3.6vw,2.8rem);
+  font-weight:900;margin-top:22px;text-decoration:none;
+  display:inline-block;max-width:100%;overflow-wrap:break-word;
+  transition:all .5s cubic-bezier(.23,1,.32,1);
+}
+.blink:hover{color:var(--red-bright);transform:translateX(24px)}
+.blink::after{content:" ↗";font-size:.58em;opacity:.6}
 
 .dcard{
-  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
-  border-radius:28px;padding:42px;max-width:520px;margin-top:48px;
-  backdrop-filter:blur(20px);transition:all .5s cubic-bezier(0.23,1,0.32,1);
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:24px;padding:clamp(24px,4vw,42px);
+  max-width:min(520px,86vw);margin-top:40px;
+  backdrop-filter:blur(20px);
+  transition:all .5s cubic-bezier(.23,1,.32,1);
 }
-.dcard:hover{border-color:var(--red);background:rgba(188,0,0,0.09);transform:translateY(-8px)}
+.dcard:hover{border-color:var(--red);transform:translateY(-6px)}
 
+/* ===== LEGAL MODALS, jetzt schließbar ===== */
+#modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  backdrop-filter:blur(8px);z-index:10002;
+  opacity:0;pointer-events:none;transition:opacity .35s ease;
+}
+#modal-backdrop.open{opacity:1;pointer-events:all}
+
+.modal{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-46%) scale(.96);
+  width:min(620px,92vw);max-height:80vh;overflow-y:auto;
+  background:#141414;border:1px solid rgba(255,255,255,.14);
+  border-radius:24px;padding:clamp(24px,4vw,44px);
+  z-index:10003;opacity:0;pointer-events:none;
+  transition:all .4s cubic-bezier(.23,1,.32,1);
+}
+.modal.open{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1)}
+.modal h2{font-size:clamp(1.4rem,3vw,2rem);margin-bottom:18px}
+.modal p{font-size:14px;line-height:1.75;opacity:.75;margin-bottom:14px;overflow-wrap:break-word}
+.modal .close-x{
+  position:absolute;top:18px;right:18px;
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  color:#fff;font-size:17px;cursor:pointer;
+  display:grid;place-items:center;
+  transition:all .3s ease;
+}
+.modal .close-x:hover{background:var(--red);border-color:var(--red)}
+
+.legal-links{
+  margin-top:56px;display:flex;gap:28px;flex-wrap:wrap;
+}
+.legal-links button{
+  background:none;border:none;color:var(--white);
+  font-family:'Space Mono',monospace;font-size:11px;
+  letter-spacing:2px;opacity:.5;cursor:pointer;
+  text-transform:uppercase;transition:opacity .3s ease;
+  padding:6px 0;
+}
+.legal-links button:hover{opacity:1;color:var(--red-bright)}
+
+/* ===== MOBILE ===== */
 @media (max-width:900px){
   .hwrap{height:auto;overflow:visible}
   .track{flex-direction:column;width:100%}
-  .panel{width:100%;height:auto;min-height:100vh;padding:160px 7vw 140px}
-  nav{padding:24px 6vw;font-size:9.5px}
+  .panel{width:100%;height:auto;min-height:100vh;padding:140px 7vw 120px}
+  .panel > *{max-width:100%}
+  .huge{font-size:clamp(2.4rem,12vw,5.5rem)}
+  .num{top:90px;right:7vw}
+  nav{padding:22px 6vw;font-size:9px}
   .prog-wrap,.scroll-hint{display:none}
+  .chess{font-size:clamp(160px,55vw,300px)}
 }
 
-@media (prefers-reduced-motion: reduce){
-  #grain{opacity:0}
-  *{transition:none!important}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
 }
 </style>
 </head>
 <body>
 
-<canvas id="grain"></canvas>
 <div id="cursor-dot"></div>
 <div id="cursor-ring"></div>
 
-<div id="toast"><span style="font-size:19px">✓</span> <span id="toast-text"></span></div>
+<div id="toast"><span style="font-size:19px">✓</span><span id="toast-text"></span></div>
 
 <nav>
   <div class="brand">ACHECKMATE // ARCHITECT</div>
@@ -145,83 +207,156 @@ nav *{pointer-events:all}
   <div class="track" id="track">
 
     <section class="panel">
+      <div class="num">01 / 05</div>
       <div class="chess" style="right:4vw;top:45%">♚</div>
       <div class="label">// Artistic Affinity</div>
       <h1 class="huge">ACHECK</h1>
       <h1 class="huge outline">MATE.</h1>
-      <p class="body-txt">UGC Creator, Building Architect &amp; Web Developer.<br>Technik trifft Kreativität.</p>
+      <p class="body-txt">UGC Creator, Building Architect und Web Developer. Ich verbinde Technik mit Kreativität und baue Dinge, die Spaß machen.</p>
     </section>
 
     <section class="panel" style="background:var(--red);color:#000">
-      <div class="chess" style="left:-3vw;top:48%;color:#000;opacity:0.09">♛</div>
+      <div class="num" style="color:#000">02 / 05</div>
+      <div class="chess" style="left:-3vw;top:48%;color:#000;opacity:.09">♛</div>
       <div class="label" style="color:#000">// Metaverse Lab</div>
-      <h1 class="huge" style="font-size:clamp(3.4rem,11vw,12rem)">ROBLOX</h1>
-      <a class="blink" style="color:#000" href="https://www.roblox.com/de/users/7939067474/profile" target="_blank">PROFIL ÖFFNEN ↗</a>
+      <h1 class="huge">ROBLOX</h1>
+      <a class="blink" style="color:#000" href="https://www.roblox.com/de/users/7939067474/profile" target="_blank" rel="noopener">PROFIL ÖFFNEN</a>
+      <div style="margin-top:14px;font-family:'Space Mono',monospace;font-size:12px;opacity:.75">UGC · Building · Design</div>
     </section>
 
     <section class="panel">
-      <div class="chess" style="right:8vw;bottom:-10vh;opacity:0.045">♜</div>
+      <div class="num">03 / 05</div>
+      <div class="chess" style="right:8vw;bottom:-8vh;opacity:.04">♜</div>
       <div class="label">// Digital Construction</div>
       <h1 class="huge">WEB</h1>
       <h1 class="huge outline">DEVELOP.</h1>
-      <p class="body-txt">Diese Seite ist selbst gebaut.<br>Interaktive Interfaces & präzise Animationen.</p>
+      <p class="body-txt">Diese Seite habe ich komplett selbst gebaut. Interaktive Interfaces und saubere Animationen sind genau mein Ding.</p>
     </section>
 
     <section class="panel" style="background:var(--white);color:#000">
+      <div class="num" style="color:#000">04 / 05</div>
       <div class="label" style="color:var(--red)">// Visual Gallery</div>
       <h1 class="huge" style="color:#111">INSTA</h1>
-      <a class="blink" style="color:#111" href="https://www.instagram.com/gio0vannii/" target="_blank">@GIO0VANNII ↗</a>
+      <a class="blink" style="color:#111" href="https://www.instagram.com/gio0vannii/" target="_blank" rel="noopener">@GIO0VANNII</a>
     </section>
 
     <section class="panel" id="contact">
-      <div class="chess" style="left:50%;top:50%;transform:translate(-50%,-50%);opacity:0.045">♝</div>
+      <div class="num">05 / 05</div>
+      <div class="chess" style="left:50%;top:50%;transform:translate(-50%,-50%);opacity:.04">♝</div>
       <div class="label">// Final Move</div>
-      <h1 class="huge" style="font-size:clamp(3rem,9.5vw,10rem)">CONTACT</h1>
+      <h1 class="huge">CONTACT</h1>
 
       <div class="dcard">
-        <p style="font-family:'Space Mono';font-size:13px;opacity:0.75;line-height:1.65;margin-bottom:18px">Discord Username kopieren und in Discord suchen.</p>
-        <h3 style="font-size:2.15rem;margin-bottom:20px">gio0vani</h3>
-        <button id="copy-btn" style="background:#fff;color:#000;padding:16px 34px;border:none;border-radius:999px;font-weight:700;letter-spacing:1.5px;cursor:pointer">USERNAME KOPIEREN</button>
+        <p style="font-family:'Space Mono',monospace;font-size:12.5px;opacity:.75;line-height:1.65;margin-bottom:16px">Kopiere meinen Discord Namen und such mich in Discord.</p>
+        <h3 style="font-size:clamp(1.6rem,3vw,2.1rem);margin-bottom:20px">gio0vani</h3>
+        <button id="copy-btn" style="background:#fff;color:#000;padding:15px 32px;border:none;border-radius:999px;font-weight:700;letter-spacing:1.5px;cursor:pointer">USERNAME KOPIEREN</button>
       </div>
 
-      <div style="margin-top:70px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:40px">
-        <div><div style="font-family:'Space Mono';font-size:10px;opacity:0.5">EMAIL</div><a href="mailto:acheckmate100@gmail.com" style="color:white;text-decoration:none;font-weight:600">acheckmate100@gmail.com</a></div>
-        <div><div style="font-family:'Space Mono';font-size:10px;opacity:0.5">ROBLOX</div><a href="https://www.roblox.com/de/users/7939067474/profile" target="_blank" style="color:white;text-decoration:none;font-weight:600">@Acheckmate</a></div>
-        <div><div style="font-family:'Space Mono';font-size:10px;opacity:0.5">INSTAGRAM</div><a href="https://www.instagram.com/gio0vannii/" target="_blank" style="color:white;text-decoration:none;font-weight:600">@gio0vannii</a></div>
+      <div style="margin-top:60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:36px;max-width:min(720px,86vw)">
+        <div><div style="font-family:'Space Mono',monospace;font-size:10px;opacity:.5;margin-bottom:6px">EMAIL</div><a href="mailto:acheckmate100@gmail.com" style="color:#fff;text-decoration:none;font-weight:600;font-size:14px;overflow-wrap:anywhere">acheckmate100@gmail.com</a></div>
+        <div><div style="font-family:'Space Mono',monospace;font-size:10px;opacity:.5;margin-bottom:6px">ROBLOX</div><a href="https://www.roblox.com/de/users/7939067474/profile" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;font-weight:600;font-size:14px">@Acheckmate</a></div>
+        <div><div style="font-family:'Space Mono',monospace;font-size:10px;opacity:.5;margin-bottom:6px">INSTAGRAM</div><a href="https://www.instagram.com/gio0vannii/" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;font-weight:600;font-size:14px">@gio0vannii</a></div>
+      </div>
+
+      <div class="legal-links">
+        <button id="open-impressum">Impressum</button>
+        <button id="open-datenschutz">Datenschutz</button>
       </div>
     </section>
 
   </div>
 </div>
 
+<!-- LEGAL MODALS -->
+<div id="modal-backdrop"></div>
+
+<div class="modal" id="modal-impressum">
+  <button class="close-x" data-close>✕</button>
+  <h2>Impressum</h2>
+  <p>Angaben gemäß § 5 TMG</p>
+  <p>Diese Website ist ein privates, nicht kommerzielles Portfolio.</p>
+  <p>Kontakt: acheckmate100@gmail.com</p>
+</div>
+
+<div class="modal" id="modal-datenschutz">
+  <button class="close-x" data-close>✕</button>
+  <h2>Datenschutz</h2>
+  <p>Diese Website speichert keine personenbezogenen Daten und verwendet keine Cookies.</p>
+  <p>Beim Aufruf der Seite werden durch GitHub Pages technisch notwendige Daten wie die IP Adresse verarbeitet. Mehr dazu findest du in der Datenschutzerklärung von GitHub.</p>
+  <p>Schriftarten werden über Google Fonts geladen. Dabei wird deine IP Adresse an Google übertragen.</p>
+</div>
+
 <script>
 gsap.registerPlugin(ScrollTrigger);
 
-let lenisInstance = null;
 const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Lenis nur auf Desktop
-function initLenis() {
-  if (lenisInstance) lenisInstance.destroy();
-  lenisInstance = new Lenis({
-    lerp: 0.085,
-    smoothWheel: true,
-    smoothTouch: false,
-    touchMultiplier: 2
-  });
-  lenisInstance.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenisInstance.raf(time * 1000));
+/* ===== SOUND SYSTEM ===== */
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-// MatchMedia für Desktop
+function playClick() {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(660, audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(330, audioCtx.currentTime + 0.08);
+  g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + 0.12);
+}
+
+function playWhoosh() {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  const f = audioCtx.createBiquadFilter();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(120, audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.25);
+  f.type = 'lowpass';
+  f.frequency.value = 600;
+  g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.09, audioCtx.currentTime + 0.08);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+  o.connect(f); f.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + 0.32);
+}
+
+// Audio erst nach erster Interaktion freischalten (Browser Vorgabe)
+['pointerdown','keydown','touchstart'].forEach(ev => {
+  window.addEventListener(ev, ensureAudio, {once:false});
+});
+
+// Klick Sound auf der ganzen Seite
+window.addEventListener('pointerdown', () => playClick());
+
+/* ===== LENIS + HORIZONTAL SCROLL ===== */
+let lenisInstance = null;
+let currentPanel = 0;
+const panelCount = document.querySelectorAll('.panel').length;
+
+function initLenis() {
+  if (lenisInstance) lenisInstance.destroy();
+  lenisInstance = new Lenis({lerp: 0.085, smoothWheel: true, smoothTouch: false});
+  lenisInstance.on('scroll', ScrollTrigger.update);
+  gsap.ticker.add(t => lenisInstance.raf(t * 1000));
+}
+
 const mm = gsap.matchMedia();
 mm.add("(min-width: 901px)", () => {
   if (!isReducedMotion) initLenis();
 
-  const track = document.getElementById("track");
+  const track = document.getElementById('track');
   const distance = () => track.scrollWidth - window.innerWidth;
 
-  const scrollTween = gsap.to(track, {
+  const tween = gsap.to(track, {
     x: () => -distance(),
     ease: "none",
     scrollTrigger: {
@@ -229,94 +364,121 @@ mm.add("(min-width: 901px)", () => {
       start: "top top",
       end: () => "+=" + distance(),
       pin: true,
-      scrub: 1.05,
+      scrub: 1,
       invalidateOnRefresh: true,
       onUpdate: (self) => {
-        document.getElementById("progress").style.width = (self.progress * 100) + "%";
-        document.getElementById("hint").style.opacity = self.progress > 0.035 ? 0 : 0.35;
+        document.getElementById('progress').style.width = (self.progress * 100) + "%";
+        document.getElementById('hint').style.opacity = self.progress > 0.035 ? 0 : 0.35;
+
+        // Whoosh beim Vorbeigehen an einem Panel
+        const idx = Math.round(self.progress * (panelCount - 1));
+        if (idx !== currentPanel) {
+          currentPanel = idx;
+          playWhoosh();
+        }
       }
     }
   });
 
   return () => {
-    scrollTween.scrollTrigger?.kill();
+    tween.scrollTrigger?.kill();
     if (lenisInstance) lenisInstance.destroy();
   };
 });
 
-// Cursor
-const dot = document.getElementById("cursor-dot");
-const ring = document.getElementById("cursor-ring");
+// Whoosh auch auf Mobile (vertikal)
+mm.add("(max-width: 900px)", () => {
+  const panels = document.querySelectorAll('.panel');
+  panels.forEach((p, i) => {
+    ScrollTrigger.create({
+      trigger: p,
+      start: "top 60%",
+      onEnter: () => { if (i !== currentPanel) { currentPanel = i; playWhoosh(); } },
+      onEnterBack: () => { if (i !== currentPanel) { currentPanel = i; playWhoosh(); } }
+    });
+  });
+});
 
-document.addEventListener("mousemove", (e) => {
+/* ===== LADE ANIMATION, von unten nach oben ===== */
+if (!isReducedMotion) {
+  gsap.from(".panel > *:not(.chess):not(.num)", {
+    y: 80,
+    opacity: 0,
+    duration: 1.1,
+    stagger: 0.08,
+    ease: "power3.out",
+    delay: 0.15
+  });
+  gsap.from("nav", {y: -40, opacity: 0, duration: 0.9, ease: "power3.out", delay: 0.5});
+}
+
+/* ===== CURSOR ===== */
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+
+document.addEventListener('mousemove', e => {
   gsap.to(dot, {x: e.clientX - 4, y: e.clientY - 4, duration: 0.08});
   gsap.to(ring, {x: e.clientX - 18, y: e.clientY - 18, duration: 0.32, ease: "power2.out"});
 });
 
-document.querySelectorAll("a, button").forEach(link => {
-  link.addEventListener("mouseenter", () => gsap.to(ring, {scale: 2.15, borderColor: "#FF1A1A", duration: 0.4}));
-  link.addEventListener("mouseleave", () => gsap.to(ring, {scale: 1, borderColor: "#BC0000", duration: 0.4}));
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => gsap.to(ring, {scale: 2.1, borderColor: '#FF1A1A', duration: 0.35}));
+  el.addEventListener('mouseleave', () => gsap.to(ring, {scale: 1, borderColor: '#BC0000', duration: 0.35}));
 });
 
-// Toast
-const toast = document.getElementById("toast");
-const toastText = document.getElementById("toast-text");
+/* ===== TOAST ===== */
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toast-text');
+let toastTimer;
 
-function showToast(message) {
-  toastText.textContent = message;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2800);
+function showToast(msg) {
+  toastText.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
-// Copy Button
-document.getElementById("copy-btn").addEventListener("click", () => {
-  navigator.clipboard.writeText("gio0vani").then(() => {
-    showToast("Discord Username kopiert ✓");
-  });
+document.getElementById('copy-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText('gio0vani').then(() => showToast('Discord Name kopiert'));
 });
 
-// Clock
+/* ===== LEGAL MODALS, sauber schließbar ===== */
+const backdrop = document.getElementById('modal-backdrop');
+const modals = {
+  impressum: document.getElementById('modal-impressum'),
+  datenschutz: document.getElementById('modal-datenschutz')
+};
+
+function openModal(name) {
+  closeAllModals();
+  backdrop.classList.add('open');
+  modals[name].classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAllModals() {
+  backdrop.classList.remove('open');
+  Object.values(modals).forEach(m => m.classList.remove('open'));
+  document.body.style.overflow = '';
+}
+
+document.getElementById('open-impressum').addEventListener('click', () => openModal('impressum'));
+document.getElementById('open-datenschutz').addEventListener('click', () => openModal('datenschutz'));
+
+// Schließen: X Button, Klick auf Hintergrund, ESC Taste
+document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', closeAllModals));
+backdrop.addEventListener('click', closeAllModals);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
+
+/* ===== CLOCK ===== */
 setInterval(() => {
-  document.getElementById("clock").textContent = new Date().toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
 }, 1000);
 
-// Grain (leicht & performant)
-const canvas = document.getElementById("grain");
-let ctx, cw, ch;
-
-function resizeCanvas() {
-  cw = Math.floor(window.innerWidth * 0.6);
-  ch = Math.floor(window.innerHeight * 0.6);
-  canvas.width = cw;
-  canvas.height = ch;
-  ctx = canvas.getContext("2d");
-}
-resizeCanvas();
-window.addEventListener("resize", () => {
-  resizeCanvas();
-  ScrollTrigger.refresh(true);
-});
-
-let tick = 0;
-function noise() {
-  tick++;
-  if (tick % 6 === 0 && !isReducedMotion) {
-    const data = ctx.createImageData(cw, ch);
-    const buffer = new Uint32Array(data.data.buffer);
-    for (let i = 0; i < buffer.length; i++) {
-      if (Math.random() < 0.17) buffer[i] = 0xDDFFFFFF;
-    }
-    ctx.putImageData(data, 0, 0);
-  }
-  requestAnimationFrame(noise);
-}
-noise();
-
-// Initialisierung
-window.addEventListener("load", () => {
-  ScrollTrigger.refresh(true);
-  console.log("%cACHECKMATE v3.0 — Bugs behoben & optimiert", "color:#FF1A1A;font-weight:900;font-size:17px");
-});
+/* ===== INIT ===== */
+window.addEventListener('resize', () => ScrollTrigger.refresh(true));
+window.addEventListener('load', () => ScrollTrigger.refresh(true));
 </script>
 </body>
 </html>
